@@ -1,0 +1,36 @@
+name: Build ARM64 Image for 麒麟V10
+
+on:
+  workflow_dispatch:  # 手动触发
+  push:
+    branches: [main]
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 构建 ARM64 镜像并导出为 tar
+      - name: Build ARM64 image
+        run: |
+          docker buildx build \
+            --platform linux/arm64 \
+            --tag openmaic:arm64-latest \
+            --output type=docker,dest=openmaic-arm64.tar \
+            .
+
+      # 上传构建产物
+      - name: Upload ARM64 image
+        uses: actions/upload-artifact@v4
+        with:
+          name: openmaic-arm64-image
+          path: openmaic-arm64.tar
+          retention-days: 7
